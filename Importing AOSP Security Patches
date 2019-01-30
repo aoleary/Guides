@@ -132,8 +132,8 @@ Click on the menu "Search" then, "Bookmark", then "Remove Bookmarked lines"
 
 This will strip out most of the 'clutter', so we can see more easily.
 
-Click on the menu "Search" then, "Find" and search for "file changed"
-This will show us the repos that have been updated without merge errors.
+Click on the menu "Search" then, "Find" and search for "changed"
+This will show us the repos that have been updated directly without merge errors.
 e.g.
 From https://android.googlesource.com/platform//frameworks/opt/telephony
  * tag                   android-8.1.0_r42           -> FETCH_HEAD
