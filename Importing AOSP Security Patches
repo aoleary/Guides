@@ -1,1 +1,152 @@
-Initial setup 
+
+Go to vendor/<your rom name>
+
+git fetch https://github.com/aoleary/platform_vendor_aos.githttps://github.com/aoleary/platform_vendor_aos.git
+git cherry-pick -x 3ff6e7ba5e600806e5ba11bf8b9e55417f5aadaa
+
+
+Go to manifest of your ROM. For Atomic-OS, its - https://github.com/Atomic-OS/platform_manifest
+And find the xml. For Atomic-OS it is aos.xml
+
+
+Then cd to vendor/<your rom name>/scripts
+
+Modify the script (merge-aosp.sh) to the xml related to your ROM
+Modify the lines:
+https://github.com/aoleary/platform_vendor_aos/blob/oreo/scripts/merge-aosp.sh#L72-L73
+      if grep -q "$i" $WORKING_DIR/manifest/o8x_default.xml; then # If we have it in our manifest and
+        if grep "$i" $WORKING_DIR/manifest/o8x_default.xml | grep -q "remote="; then # If we track our own copy of it
+
+from:
+o8x_default.xml
+to your xml name.
+
+In my case, aos.xml
+      if grep -q "$i" $WORKING_DIR/manifest/aos.xml; then # If we have it in our manifest and
+        if grep "$i" $WORKING_DIR/manifest/aos.xml | grep -q "remote="; then # If we track our own copy of it
+
+Then cd back to the root of your ROM build folder
+In my case:
+cd ~/Atomic
+
+NOTE: Security patches are not cumulative, so you need to import the next in the sequence after what has been imported into your system.
+Go to the commit history of the build repo for your ROM.
+e.g. https://github.com/Atomic-OS/platform_build/commits/oreo
+Look for a commit that begins with:
+Merge tag 'android-8.1.0_rXX
+
+
+You need to import the next tag in the sequence. Go here to find the list of tags:
+https://android.googlesource.com/platform/manifest/+refs
+I chose "android-8.1.0_r42", as this was the next highest numbered tag for "my" ROM.
+
+Your tag name to run the script with, will be: 8.1.0_r42
+
+
+Then run the script from the root of your ROM build folder (NOT from vendor/<your rom name>/scripts )
+. vendor/aos/scripts/merge-aosp.sh 8.1.0_r43 2>&1 | tee merge.log
+
+Wait for the script to finish, and you should see the following repos marked with conflicts:
+Automatic merge failed; fix conflicts and then commit the result.
+
+These repos have merge errors: 
+
+frameworks/av
+frameworks/base
+manifest
+ota
+packages/apps/Messaging
+packages/apps/MusicFX
+packages/apps/Settings
+build/make
+
+We need to cd to each one and then run "git status" to know which files caused the conflicts..
+
+Lets take an easy one
+root@aoleary:~/atomic# cd build/make
+root@aoleary:~/atomic/build/make# git status
+Not currently on any branch.
+You have unmerged paths.
+  (fix conflicts and run "git commit")
+  (use "git merge --abort" to abort the merge)
+
+Unmerged paths:
+  (use "git add <file>..." to mark resolution)
+
+        both modified:   core/build_id.mk
+        both modified:   core/version_defaults.mk
+
+root@aoleary:~/atomic/build/make# nano core/version_defaults.mk
+
+First part (after HEAD) is what is removed.
+Second part is what is to be added..
+<<<<<<< HEAD
+      PLATFORM_SECURITY_PATCH := 2018-07-05
+=======
+      PLATFORM_SECURITY_PATCH := 2018-08-05
+>>>>>>> 0ddcd02b6db9aa6af344cad0f4815b212fe0163a
+
+root@aoleary:~/atomic/build/make# add core/version_defaults.mk
+root@aoleary:~/atomic/build/make# nano core/build_id.mk
+root@aoleary:~/atomic/build/make# add core/build_id.mk
+root@aoleary:~/atomic/build/make# cd ~/atomic
+
+Build the ROM. Correct any errors and when it builds successfully, test the build.
+
+Now we go to the committing actions..
+
+First we start with the repos that had merge errors, as we already have that list
+In my case, these repos were highlighted when I ran the script.
+frameworks/av
+frameworks/base
+manifest
+ota
+packages/apps/Messaging
+packages/apps/MusicFX
+packages/apps/Settings
+build/make
+
+We need to cd to each directory and do the following:
+Do "git status" to see what files are affected.
+Then do "git add ." to add all changes to the future commit.
+Add the files to the commit: git commit -m "Merge tag 'android-8.1.0_r42' into 8.1" => Change this as per your tag that you merged with the script
+Fork the repo to your github, if not already done
+Add the branch info locally: git remote add  <branch name> <git repo to be added> => to be done only once
+Push to the remote github: git push -u <branch name> HEAD:<branch name>
+
+Next, we need to analyse the merge.log to see what repos were updated automatically, without conflicts.
+
+Copy the merge.log to your desktop where you can modify it with Notepad++.
+
+Open the merge.log in Notepad++, and click on the menu "Search" then, "Mark..."
+Choose the option "Bookmark line"
+In the "Find what" field enter: Checking out files
+Choose "Mark All"
+You should have all the lines with "Checking out files" highlighted
+Next, in the "Find what" field enter: new tag
+Choose "Mark All"
+You should have all the lines with " * [new tag]" highlighted
+Click Close
+
+Click on the menu "Search" then, "Bookmark", then "Remove Bookmarked lines"
+
+This will strip out most of the 'clutter', so we can see more easily.
+
+Click on the menu "Search" then, "Find" and search for "file changed"
+This will show us the repos that have been updated without merge errors.
+e.g.
+From https://android.googlesource.com/platform//frameworks/opt/telephony
+ * tag                   android-8.1.0_r42           -> FETCH_HEAD
+Merge made by the 'recursive' strategy.
+ .../android/internal/telephony/mocks/ConnectivityServiceMock.java    | 5 +++++
+ 1 file changed, 5 insertions(+)
+ 
+The repo it relates to, is the repo just above it, in this case "frameworks/opt/telephony"
+So we need to cd to that directory and push the changes to our forked repo.
+Note: if you do a "git status" it will not show anthing changed, but if you do a push, you will see that changes will be pushed:
+cd ~/atomic/frameworks/opt/telephony
+
+Do the same for all other repos that have "file changed".
+
+DONE!
+
