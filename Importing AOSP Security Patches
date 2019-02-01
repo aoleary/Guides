@@ -148,5 +148,22 @@ cd ~/atomic/frameworks/opt/telephony
 
 Do the same for all other repos that have "file changed".
 
+Now that we have tested and committed everything to our forked trees, we now need to declare our forked repos in the local manifest.
+We do this because the merge-aosp.sh script initiates a force sync at the very beginning each time to ensure that we have no uncommitted changes locally before trying to merge the security patch.
+
+Therefore, if we dont declare in the manifest that we want to use our own forked trees, then we will lose the commits from the previous patch..
+
+To declare the forked repos,  I will take the case for frameworks_av.
+
+If we check the forked repo it is callled as following:
+https://github.com/aoleary/platform_frameworks_av
+
+Therefore "remove-project name" = platform_frameworks_av
+          "project path" = frameworks/av
+		  "project name" = aoleary/platform_frameworks_av
+		  "revision" = oreo => the branch name
+  <remove-project name="platform_frameworks_av" />
+  <project path="frameworks/av" name="aoleary/platform_frameworks_av" remote="github" revision="oreo" />
+
 DONE!
 
