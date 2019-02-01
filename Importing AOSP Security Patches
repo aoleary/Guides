@@ -44,9 +44,13 @@ Your tag name to run the script with, will be: 8.1.0_r42
 
 
 Then run the script from the root of your ROM build folder (NOT from vendor/<your rom name>/scripts )
-. vendor/aos/scripts/merge-aosp.sh 8.1.0_r43 2>&1 | tee merge.log
+. vendor/aos/scripts/merge-aosp.sh 8.1.0_rXX 2>&1 | tee merge_rXX.log =>> where XX is the revision number (42 in this example)
 
-Wait for the script to finish, and you should see the following repos marked with conflicts:
+. vendor/aos/scripts/merge-aosp.sh 8.1.0_r42 2>&1 | tee merge_r42.log
+
+Wait for the script to finish, and you should see the following at the end when the script finishes.
+There are the repos marked with conflicts:
+***********************************************************
 Automatic merge failed; fix conflicts and then commit the result.
 
 These repos have merge errors: 
@@ -59,6 +63,9 @@ packages/apps/Messaging
 packages/apps/MusicFX
 packages/apps/Settings
 build/make
+***********************************************************
+
+****Note these in a notepad file to keep them for later****
 
 We need to cd to each one and then run "git status" to know which files caused the conflicts..
 
@@ -147,6 +154,8 @@ Note: if you do a "git status" it will not show anthing changed, but if you do a
 cd ~/atomic/frameworks/opt/telephony
 
 Do the same for all other repos that have "file changed".
+
+****Add these directories to the notepad you created earlier with the repo conflicts****
 
 Now that we have tested and committed everything to our forked trees, we now need to declare our forked repos in the local manifest.
 We do this because the merge-aosp.sh script initiates a force sync at the very beginning each time to ensure that we have no uncommitted changes locally before trying to merge the security patch.
