@@ -1,7 +1,7 @@
 
 "cd" to vendor/<your rom name>
 
-git fetch https://github.com/aoleary/platform_vendor_aos.githttps://github.com/aoleary/platform_vendor_aos.git
+git fetch https://github.com/aoleary/platform_vendor_aos.git
 git cherry-pick -x 3ff6e7ba5e600806e5ba11bf8b9e55417f5aadaa
 
 
